@@ -23,21 +23,18 @@ import java.util.Properties;
 public class KrbTest {
 
     private void loginImpl(final String propertiesFileName) throws Exception {
-        System.out.println("NB: system property to specify the krb5 config: [java.security.krb5.conf]");
-        //System.setProperty("java.security.krb5.conf", "/etc/krb5.conf");
-
         System.out.println(System.getProperty("java.version"));
 
         System.setProperty("sun.security.krb5.debug", "true");
-        System.setProperty("java.security.krb5.conf", "E:\\WORK\\kerberos-demo\\src\\test\\resources\\kerberos.conf");
+        System.setProperty("java.security.krb5.conf", getClass().getResource("/kerberos.conf").getFile());
 
         final Subject subject = new Subject();
 
         final Krb5LoginModule krb5LoginModule = new Krb5LoginModule();
-        final Map<String, String> optionMap = new HashMap<String, String>();
+        final Map<String, String> optionMap = new HashMap<>();
 
         if (propertiesFileName == null) {
-            optionMap.put("keyTab", "e:\\svc_user.keytab");
+            optionMap.put("keyTab", new File(System.getProperty("user.dir"), "svc_user.keytab").getAbsolutePath());
             optionMap.put("principal", "HTTP/server.dev.local@DEV.LOCAL"); // default realm
 
             optionMap.put("doNotPrompt", "true");
@@ -51,11 +48,8 @@ public class KrbTest {
             File f = new File(propertiesFileName);
             System.out.println("======= loading property file [" + f.getAbsolutePath() + "]");
             Properties p = new Properties();
-            InputStream is = new FileInputStream(f);
-            try {
+            try (InputStream is = new FileInputStream(f)) {
                 p.load(is);
-            } finally {
-                is.close();
             }
             optionMap.putAll((Map) p);
         }
