@@ -16,8 +16,9 @@ required to make the application run.
 # Generate a correct working keytab file
 There is 2 small utillity classes available, that can
 help verify a working setup.
- - JceTest - verifies full crypto support
- - KrbTest - verifies if your keytab file is usable
+ - JceTest - verifies full crypto support, started with `java -cp target\kerberos-demo.jar -Dloader.main=com.findwise.kerberos.JceTest org.springframework.boot.loader.PropertiesLauncher`
+
+ - KrbTest - verifies if your keytab file is usable, started with `java -cp target\kerberos-demo.jar -Dloader.main=com.findwise.kerberos.KrbTest org.springframework.boot.loader.PropertiesLauncher krb_test.properties`
 
 It cannot be stated enough, that most Kerberos related errors relates to the fact, that
 the keytab file is not generated correctly.

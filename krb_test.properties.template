@@ -1,0 +1,12 @@
+system_java.security.krb5.kdc=
+system_java.security.krb5.realm=
+system_java.security.krb.conf=C:/Windows/krb5.ini
+keyTab=D:/EnergyComponents/QA/ecserver.keytab
+principal=HTTP/ecserver.ecsso.ec.tieto.com
+doNotPrompt=true
+refreshKrb5Config=true
+useTicketCache=false
+renewTGT=false
+useKeyTab=true
+storeKey=true
+isInitiator=true

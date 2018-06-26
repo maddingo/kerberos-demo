@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 
@@ -25,34 +26,34 @@ public class KrbTest {
     private void loginImpl(final String propertiesFileName) throws Exception {
         System.out.println(System.getProperty("java.version"));
 
-        System.setProperty("sun.security.krb5.debug", "true");
-        System.setProperty("java.security.krb5.conf", getClass().getResource("/kerberos.conf").getFile());
-
         final Subject subject = new Subject();
 
         final Krb5LoginModule krb5LoginModule = new Krb5LoginModule();
         final Map<String, String> optionMap = new HashMap<>();
 
-        if (propertiesFileName == null) {
-            optionMap.put("keyTab", new File(System.getProperty("user.dir"), "svc_user.keytab").getAbsolutePath());
-            optionMap.put("principal", "HTTP/server.dev.local@DEV.LOCAL"); // default realm
-
-            optionMap.put("doNotPrompt", "true");
-            optionMap.put("refreshKrb5Config", "true");
-            optionMap.put("useTicketCache", "false");
-            optionMap.put("renewTGT", "false");
-            optionMap.put("useKeyTab", "true");
-            optionMap.put("storeKey", "true");
-            optionMap.put("isInitiator", "true");
-        } else {
-            File f = new File(propertiesFileName);
-            System.out.println("======= loading property file [" + f.getAbsolutePath() + "]");
-            Properties p = new Properties();
-            try (InputStream is = new FileInputStream(f)) {
-                p.load(is);
-            }
-            optionMap.putAll((Map) p);
+        File f = new File(propertiesFileName);
+        System.out.println("======= loading property file [" + f.getAbsolutePath() + "]");
+        Properties p = new Properties();
+        try (InputStream is = new FileInputStream(f)) {
+            p.load(is);
         }
+        Properties sysProps = new Properties();
+        Iterator<Map.Entry<Object,Object>> propsIterator = p.entrySet().iterator();
+        while (propsIterator.hasNext()) {
+            Map.Entry<Object, Object> entry = propsIterator.next();
+            String entryKey = entry.getKey().toString();
+            if (entryKey.startsWith("system_")) {
+                sysProps.put(entryKey.substring("system_".length()), entry.getValue());
+                propsIterator.remove();
+            }
+        }
+        for (Map.Entry<?,?> entry : sysProps.entrySet()) {
+            System.setProperty(entry.getKey().toString(), entry.getValue().toString());
+        }
+        System.setProperty("sun.security.krb5.debug", "true");
+
+        optionMap.putAll((Map) p);
+
         optionMap.put("debug", "true"); // switch on debug of the Java implementation
 
         krb5LoginModule.initialize(subject, null, new HashMap<String, String>(), optionMap);
@@ -67,12 +68,15 @@ public class KrbTest {
     }
 
     public static void main(String[] args) {
-        KrbTest krbTest = new KrbTest();
-        try {
-            krbTest.loginImpl(null);
-        } catch (Exception e) {
-            System.out.println(e.getStackTrace());
-
+        if (args.length != 1) {
+            System.out.println("Missing Properties");
+        } else {
+            KrbTest krbTest = new KrbTest();
+            try {
+                krbTest.loginImpl(args[0]);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
