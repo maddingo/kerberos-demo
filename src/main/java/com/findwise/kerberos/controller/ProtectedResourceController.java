@@ -1,5 +1,6 @@
 package com.findwise.kerberos.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
  */
 @Controller
 public class ProtectedResourceController {
+
+    @Value("${app.required-role}")
+    private String requiredRole;
+
+    @Value("${app.ldap-role-prefix}")
+    private String rolePrefix;
 
     @RequestMapping("/")
     public String home() {
@@ -36,6 +43,8 @@ public class ProtectedResourceController {
 
     @RequestMapping("/protected")
     public String protectedPage(Model model) {
+        model.addAttribute("requiredRole", rolePrefix + requiredRole);
         return "protected";
     }
+
 }

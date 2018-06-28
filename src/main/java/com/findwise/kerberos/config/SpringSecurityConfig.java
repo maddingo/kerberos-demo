@@ -14,6 +14,11 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.kerberos.authentication.KerberosServiceAuthenticationProvider;
 import org.springframework.security.kerberos.authentication.sun.SunJaasKerberosTicketValidator;
 import org.springframework.security.kerberos.client.config.SunJaasKrb5LoginConfig;
@@ -24,6 +29,8 @@ import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsService;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+
+import java.util.Collections;
 
 /**
  * SpringSecurityConfig:
@@ -59,32 +66,43 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     @Value("${app.ldap-role-attribute}")
     private String ldapRoleAttribute;
 
+    @Value("${app.required-role}")
+    private String requiredRole;
+
+    @Value("${app.enable-localhost-filter}")
+    private boolean enableLocalhostFilter;
+
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity
-                .exceptionHandling()
-                    .authenticationEntryPoint(spnegoEntryPoint())
-                    .and()
-                .authorizeRequests()
-                    .antMatchers("/").permitAll()
-                    .anyRequest().authenticated()
-                    .anyRequest().hasRole("APP-PS2-SIK-FOR")
-                    .and()
-                .formLogin()
-                    .loginPage("/login").permitAll()
-                    .and()
-                .logout()
-                    .permitAll()
-                    .and()
-                .addFilterAt(
-                        spnegoAuthenticationProcessingFilter(authenticationManagerBean()),
-                        BasicAuthenticationFilter.class
-                )
-                .addFilterBefore(
-                        localhostAuthFilter(authenticationManagerBean()),
-                                BasicAuthenticationFilter.class
-                );
+            .exceptionHandling()
+                .authenticationEntryPoint(spnegoEntryPoint())
+                .and()
+            .authorizeRequests()
+                .antMatchers("/").permitAll()
+                .anyRequest().authenticated()
+                .anyRequest().hasRole(requiredRole)
+                .and()
+            .formLogin()
+                .loginPage("/login").permitAll()
+                .and()
+            .logout()
+                .permitAll()
+                .and()
+            .addFilterAt(
+                    spnegoAuthenticationProcessingFilter(authenticationManagerBean()),
+                    BasicAuthenticationFilter.class
+            );
+
+        if (enableLocalhostFilter) {
+
+            httpSecurity
+                    .addFilterBefore(
+                            localhostAuthFilter(authenticationManagerBean()),
+                            BasicAuthenticationFilter.class
+                    );
+        }
     }
 
     /**
@@ -129,7 +147,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public LocalhostAuthProvider localhostAuthProvider() {
         LocalhostAuthProvider localhostAuthProvider = new LocalhostAuthProvider();
-        localhostAuthProvider.setUserDetailsService(ldapUserDetailsService());
+        localhostAuthProvider.setUserDetailsService(localUserDetailsService());
         return localhostAuthProvider;
     }
 
@@ -199,7 +217,8 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     public KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider() {
         KerberosServiceAuthenticationProvider provider = new KerberosServiceAuthenticationProvider();
         provider.setTicketValidator(sunJaasKerberosTicketValidator());
-        provider.setUserDetailsService(ldapUserDetailsService());
+//        provider.setUserDetailsService(ldapUserDetailsService());
+        provider.setUserDetailsService(localUserDetailsService());
         return provider;
     }
 
@@ -276,12 +295,23 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
      * @see LdapUserDetailsMapper
      */
     @Bean
-    public LdapUserDetailsService ldapUserDetailsService() {
+    public UserDetailsService ldapUserDetailsService() {
         FilterBasedLdapUserSearch userSearch =
                 new FilterBasedLdapUserSearch(ldapSearchBase, ldapSearchFilter, kerberosLdapContextSource());
         LdapUserDetailsService service = new LdapUserDetailsService(userSearch);
         service.setUserDetailsMapper(ldapUserDetailsMapper());
         return service;
+    }
+
+    @Bean
+    public UserDetailsService localUserDetailsService() {
+        return new UserDetailsService() {
+
+            @Override
+            public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+                return new User(username, "", Collections.singleton(new SimpleGrantedAuthority(ldapRolePrefix + requiredRole)));
+            }
+        };
     }
 
     /**

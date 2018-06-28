@@ -23,6 +23,7 @@
         <waffle.version>1.8.3</waffle.version>
         <jna.version>4.4.0</jna.version>
         <guava.version>22.0</guava.version>
+        <spring.kerberos.version>1.0.2.BUILD-SNAPSHOT</spring.kerberos.version>
     </properties>
 
     <dependencyManagement>
@@ -75,17 +76,17 @@
         <dependency>
             <groupId>org.springframework.security.kerberos</groupId>
             <artifactId>spring-security-kerberos-core</artifactId>
-            <version>1.0.1.RELEASE</version>
+            <version>${spring.kerberos.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security.kerberos</groupId>
             <artifactId>spring-security-kerberos-client</artifactId>
-            <version>1.0.1.RELEASE</version>
+            <version>${spring.kerberos.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security.kerberos</groupId>
             <artifactId>spring-security-kerberos-web</artifactId>
-            <version>1.0.1.RELEASE</version>
+            <version>${spring.kerberos.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
