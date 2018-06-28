@@ -14,7 +14,7 @@ public class JceTest {
         try {
             int length = Cipher.getMaxAllowedKeyLength("AES");
             boolean unlimited = (length == Integer.MAX_VALUE);
-            System.out.println("Supportet: "+unlimited);
+            System.out.println("Supported: " + unlimited);
         } catch (NoSuchAlgorithmException e) {
             System.err.println(e.getStackTrace());
         }
