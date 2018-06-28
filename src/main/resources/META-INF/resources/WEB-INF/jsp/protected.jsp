@@ -14,8 +14,10 @@
     <link href="${springCss}" rel="stylesheet" />
 </head>
 <body>
-You are logged in as remote user <b><%= request.getRemoteUser() %></b> in session <b><%= session.getId() %></b>.
-<br><br>
+<p>This page requires the ${requiredRole} role.
+</p>
+<p>You are logged in as remote user <b><%= request.getRemoteUser() %></b> in session <b><%= session.getId() %></b>.
+</p>
 <%
     if (request.getUserPrincipal() != null) {
 %>

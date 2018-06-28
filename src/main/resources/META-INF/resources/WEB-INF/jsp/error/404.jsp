@@ -7,11 +7,10 @@
     </head>
     <body>
         <h1>Kerberos Demo page</h1>
-        <h2>Allowing anonymous Access</h2>
-        <p>Current User: <%= request.getUserPrincipal() != null ?  request.getUserPrincipal() : "NONE" %></p>
+        <h2>Error ${status}</h2>
         <p>
-            Goto the
-            <a href="/protected">protected</a> page
+        Message: ${message}
         </p>
+        <p><a href="/">Back</a></p>
     </body>
 </html>
