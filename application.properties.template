@@ -1,0 +1,17 @@
+server.port=8088
+
+app.kerberos-conf: c:\\Windows\\krb5.ini
+app.ad-domain: MY.COMPANY.COM
+app.service-principal: HTTP/server.my.company.com@MY.COMPANY.COM
+app.keytab-location: C:\\EnergyComponents\\ecserver.keytab
+
+# Leave the following parameters
+spring.mvc.view.prefix=/WEB-INF/jsp/
+spring.mvc.view.suffix=.jsp
+app.ldap-role-prefix: ROLE_
+app.ldap-role-attribute: memberof
+app.required-role: TEST-ROLE
+app.enable-localhost-filter: false
+app.ad-server: ldap://ldap.server.address/
+app.ldap-search-base: cn=Users,dc=my,dc=company,dc=com
+app.ldap-search-filter: (sAMAccountName={0})

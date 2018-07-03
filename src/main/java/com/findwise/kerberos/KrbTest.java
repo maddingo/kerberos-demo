@@ -9,11 +9,14 @@ import com.sun.security.auth.module.Krb5LoginModule;
 import javax.security.auth.Subject;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * This is simple Java program that tests ability to authenticate
@@ -23,40 +26,19 @@ import java.util.Properties;
  */
 public class KrbTest {
 
-    private void loginImpl(final String propertiesFileName) throws Exception {
+    public void login(final Map<String, String> props) throws Exception {
         System.out.println(System.getProperty("java.version"));
 
         final Subject subject = new Subject();
 
         final Krb5LoginModule krb5LoginModule = new Krb5LoginModule();
-        final Map<String, String> optionMap = new HashMap<>();
 
-        File f = new File(propertiesFileName);
-        System.out.println("======= loading property file [" + f.getAbsolutePath() + "]");
-        Properties p = new Properties();
-        try (InputStream is = new FileInputStream(f)) {
-            p.load(is);
-        }
-        Properties sysProps = new Properties();
-        Iterator<Map.Entry<Object,Object>> propsIterator = p.entrySet().iterator();
-        while (propsIterator.hasNext()) {
-            Map.Entry<Object, Object> entry = propsIterator.next();
-            String entryKey = entry.getKey().toString();
-            if (entryKey.startsWith("system_")) {
-                sysProps.put(entryKey.substring("system_".length()), entry.getValue());
-                propsIterator.remove();
-            }
-        }
-        for (Map.Entry<?,?> entry : sysProps.entrySet()) {
-            System.setProperty(entry.getKey().toString(), entry.getValue().toString());
-        }
         System.setProperty("sun.security.krb5.debug", "true");
 
-        optionMap.putAll((Map) p);
+        props.put("debug", "true"); // switch on debug of the Java implementation
 
-        optionMap.put("debug", "true"); // switch on debug of the Java implementation
-
-        krb5LoginModule.initialize(subject, null, new HashMap<String, String>(), optionMap);
+        final HashMap<String, String> sharedState = new HashMap<>();
+        krb5LoginModule.initialize(subject, null, sharedState, props);
 
         boolean loginOk = krb5LoginModule.login();
         System.out.println("======= login:  " + loginOk);
@@ -73,7 +55,13 @@ public class KrbTest {
         } else {
             KrbTest krbTest = new KrbTest();
             try {
-                krbTest.loginImpl(args[0]);
+                File f = new File(args[0]);
+                Properties props = new Properties();
+                try (FileReader fr = new FileReader(f)) {
+                    props.load(fr);
+                }
+                Map<String, String> propMap = props.keySet().stream().collect(Collectors.toMap(Object::toString, Object::toString));
+                krbTest.login(propMap);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -24,6 +24,7 @@
         <jna.version>4.4.0</jna.version>
         <guava.version>22.0</guava.version>
         <spring.kerberos.version>1.0.2.BUILD-SNAPSHOT</spring.kerberos.version>
+        <kerby.version>1.1.1</kerby.version>
     </properties>
 
     <dependencyManagement>
@@ -122,16 +123,22 @@
         <dependency>
             <groupId>org.apache.kerby</groupId>
             <artifactId>kerb-server</artifactId>
-            <version>1.1.1</version>
+            <version>${kerby.version}</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>org.apache.kerby</groupId>
             <artifactId>kerb-simplekdc</artifactId>
-            <version>1.1.1</version>
+            <version>${kerby.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <!--dependency>
+            <groupId>org.apache.kerby</groupId>
+            <artifactId>kerby-kdc</artifactId>
+            <version>${kerby.version}</version>
+        </dependency-->
 
     </dependencies>
 

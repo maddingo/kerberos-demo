@@ -25,6 +25,7 @@ import org.springframework.security.kerberos.client.config.SunJaasKrb5LoginConfi
 import org.springframework.security.kerberos.client.ldap.KerberosLdapContextSource;
 import org.springframework.security.kerberos.web.authentication.SpnegoAuthenticationProcessingFilter;
 import org.springframework.security.kerberos.web.authentication.SpnegoEntryPoint;
+import org.springframework.security.ldap.ppolicy.PasswordPolicyAwareContextSource;
 import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsService;
@@ -71,6 +72,12 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Value("${app.enable-localhost-filter}")
     private boolean enableLocalhostFilter;
+
+    @Value("${app.ldap-password")
+    private String ldapPassword;
+
+    @Value("${app.ldap-user-dn")
+    private String ldapUserDb;
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
@@ -217,8 +224,8 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     public KerberosServiceAuthenticationProvider kerberosServiceAuthenticationProvider() {
         KerberosServiceAuthenticationProvider provider = new KerberosServiceAuthenticationProvider();
         provider.setTicketValidator(sunJaasKerberosTicketValidator());
-//        provider.setUserDetailsService(ldapUserDetailsService());
-        provider.setUserDetailsService(localUserDetailsService());
+        provider.setUserDetailsService(ldapUserDetailsService());
+//        provider.setUserDetailsService(localUserDetailsService());
         return provider;
     }
 
@@ -257,6 +264,13 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     public KerberosLdapContextSource kerberosLdapContextSource() {
         KerberosLdapContextSource contextSource = new KerberosLdapContextSource(adServer);
         contextSource.setLoginConfig(loginConfig());
+        return contextSource;
+    }
+
+    public PasswordPolicyAwareContextSource passwordLdapContextSource() {
+        PasswordPolicyAwareContextSource contextSource = new PasswordPolicyAwareContextSource(adServer);
+        contextSource.setPassword(ldapPassword);
+        contextSource.setUserDn(ldapUserDb);
         return contextSource;
     }
 
